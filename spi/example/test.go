@@ -50,6 +50,18 @@ func main() {
 
 	} else {
 		fmt.Printf("Failed to initialize the channel - %s", err)
+		return
+	}
+
+	var sizeTransferred int
+	var dataToTransfer = []byte{0x48, 0x45, 0x4C, 0x4C, 0x4F, 0x20, 0x57, 0x4F, 0x52, 0x4C, 0x44, 0x0A}
+	sizeTransferred, err = spi.Write(handle, dataToTransfer)
+
+	if err == nil {
+		fmt.Printf("Number of bytes that were transferred %d", sizeTransferred)
+	} else {
+		fmt.Printf("Failed to send the data - %s", err)
+		return
 	}
 
 	err = spi.CloseChannel(handle)

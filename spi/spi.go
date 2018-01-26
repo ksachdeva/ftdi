@@ -1,6 +1,6 @@
 package spi
 
-// #cgo LDFLAGS: -L./external/darwin_amd64 -lMPSSE
+// #cgo LDFLAGS: -L./external/windows -lMPSSE
 // #include "external/libMPSSE_spi.h"
 // #include <stdlib.h>
 import "C"
@@ -73,4 +73,15 @@ func InitChannel(deviceHandle *DeviceHandle) (err error) {
 		return fmt.Errorf("an error occurred %g", status)
 	}
 	return nil
+}
+
+// Write send the data to the slave SPI device
+func Write(deviceHandle *DeviceHandle, data []uint8) (dataTransferred int, err error) {
+	var sizeTransferred C.uint32
+	var options C.uint32 = 0x00000002
+	status := C.SPI_Write(*deviceHandle.handlePtr, (*C.uint8)(&data[0]), C.uint32(len(data)), &sizeTransferred, options)
+	if status != 0 {
+		return -1, fmt.Errorf("an error occurred %g", status)
+	}
+	return int(sizeTransferred), nil
 }
