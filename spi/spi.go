@@ -1,7 +1,6 @@
 package spi
 
-// #cgo LDFLAGS: -L./external/windows -lMPSSE
-// #include "external/libMPSSE_spi.h"
+// #include "native/libMPSSE_spi.h"
 // #include <stdlib.h>
 import "C"
 import "fmt"

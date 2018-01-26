@@ -7,11 +7,6 @@ import (
 )
 
 func main() {
-	println("Hello World !")
-
-	// var NumChannels []uint32
-
-	//	status := m.SPI_GetNumChannels(NumChannels)
 
 	channels, err := spi.GetNumChannels()
 
@@ -29,7 +24,7 @@ func main() {
 	if err == nil {
 		fmt.Println(ptr.SerialNumber)
 	} else {
-		fmt.Printf("Failed to get the channel information")
+		fmt.Printf("Failed to get the channel information\n")
 		return
 	}
 
@@ -40,7 +35,7 @@ func main() {
 	if err == nil {
 		// we may have the handle
 	} else {
-		fmt.Printf("Failed to open the channel")
+		fmt.Printf("Failed to open the channel\n")
 		return
 	}
 
@@ -49,7 +44,7 @@ func main() {
 	if err == nil {
 
 	} else {
-		fmt.Printf("Failed to initialize the channel - %s", err)
+		fmt.Printf("Failed to initialize the channel - %s\n", err)
 		return
 	}
 
@@ -58,9 +53,9 @@ func main() {
 	sizeTransferred, err = spi.Write(handle, dataToTransfer)
 
 	if err == nil {
-		fmt.Printf("Number of bytes that were transferred %d", sizeTransferred)
+		fmt.Printf("Number of bytes that were transferred %d\n", sizeTransferred)
 	} else {
-		fmt.Printf("Failed to send the data - %s", err)
+		fmt.Printf("Failed to send the data - %s\n", err)
 		return
 	}
 
@@ -69,6 +64,6 @@ func main() {
 	if err == nil {
 
 	} else {
-		fmt.Printf("Failed to close the channel - %s", err)
+		fmt.Printf("Failed to close the channel - %s\n", err)
 	}
 }

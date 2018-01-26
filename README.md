@@ -1,2 +1,2 @@
 # ftdi
-GoLang bindings for FTDI 232H
+GoLang bindings for FTDI MPSSE library
