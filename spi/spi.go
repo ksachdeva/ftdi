@@ -54,13 +54,13 @@ type ChannelConfiguration struct {
 	ConfigOptions ChannelConfigOptions
 }
 
-// DeviceHandle is the handle to the channel
-type DeviceHandle struct {
+// ChannelHandle is the handle to the channel
+type ChannelHandle struct {
 	handlePtr *C.FT_HANDLE
 }
 
-// DeviceChannelInfo is the information related to the channel
-type DeviceChannelInfo struct {
+// ChannelInfo is the information related to the channel
+type ChannelInfo struct {
 	SerialNumber string
 	ptr          *C.FT_DEVICE_LIST_INFO_NODE
 }
@@ -77,17 +77,17 @@ func GetNumChannels() (int, error) {
 }
 
 // OpenChannel takes an index of the channel to be opened
-func OpenChannel(channelIndex int) (handle *DeviceHandle, err error) {
+func OpenChannel(channelIndex int) (handle *ChannelHandle, err error) {
 	var handlePtr C.FT_HANDLE
 	status := C.SPI_OpenChannel(C.uint32(channelIndex), &handlePtr)
 	if status != 0 {
 		return nil, fmt.Errorf("an error occurred %g", status)
 	}
-	return &DeviceHandle{handlePtr: &handlePtr}, nil
+	return &ChannelHandle{handlePtr: &handlePtr}, nil
 }
 
 // CloseChannel closes the channel
-func CloseChannel(handle *DeviceHandle) (err error) {
+func CloseChannel(handle *ChannelHandle) (err error) {
 	status := C.SPI_CloseChannel(*handle.handlePtr)
 	if status != 0 {
 		return fmt.Errorf("an error occurred %g", status)
@@ -96,20 +96,20 @@ func CloseChannel(handle *DeviceHandle) (err error) {
 }
 
 // GetChannelInfo returns the channel info
-func GetChannelInfo(channelIndex int) (channelInfo *DeviceChannelInfo, err error) {
+func GetChannelInfo(channelIndex int) (channelInfo *ChannelInfo, err error) {
 	var ptr C.FT_DEVICE_LIST_INFO_NODE
 	status := C.SPI_GetChannelInfo(C.uint32(channelIndex), &ptr)
 	if status != 0 {
 		return nil, fmt.Errorf("an error occurred %g", status)
 	}
-	deviceInfo := &DeviceChannelInfo{ptr: &ptr}
+	deviceInfo := &ChannelInfo{ptr: &ptr}
 	deviceInfo.SerialNumber = C.GoString(&ptr.SerialNumber[0])
 
 	return deviceInfo, nil
 }
 
 // InitChannel initializes the channel
-func InitChannel(deviceHandle *DeviceHandle, chanConfig ChannelConfiguration) (err error) {
+func InitChannel(deviceHandle *ChannelHandle, chanConfig ChannelConfiguration) (err error) {
 	var channelConfig C.ChannelConfig
 	channelConfig.ClockRate = C.uint32(chanConfig.ClockRate)
 	channelConfig.LatencyTimer = C.uint8(chanConfig.LatencyTimer)
@@ -124,7 +124,7 @@ func InitChannel(deviceHandle *DeviceHandle, chanConfig ChannelConfiguration) (e
 }
 
 // Write send the data to the slave SPI device
-func Write(deviceHandle *DeviceHandle, data []uint8, transferOptions TransferOptions) (dataTransferred int, err error) {
+func Write(deviceHandle *ChannelHandle, data []uint8, transferOptions TransferOptions) (dataTransferred int, err error) {
 	var sizeTransferred C.uint32
 	var options C.uint32 = C.uint32(transferOptions)
 	status := C.SPI_Write(*deviceHandle.handlePtr, (*C.uint8)(&data[0]), C.uint32(len(data)), &sizeTransferred, options)

@@ -17,7 +17,7 @@ func main() {
 		return
 	}
 
-	var ptr *spi.DeviceChannelInfo
+	var ptr *spi.ChannelInfo
 
 	ptr, err = spi.GetChannelInfo(0)
 
@@ -28,7 +28,7 @@ func main() {
 		return
 	}
 
-	var handle *spi.DeviceHandle
+	var handle *spi.ChannelHandle
 
 	handle, err = spi.OpenChannel(0)
 
