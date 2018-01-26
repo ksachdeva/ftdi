@@ -39,7 +39,12 @@ func main() {
 		return
 	}
 
-	err = spi.InitChannel(handle)
+	var channelConfig spi.ChannelConfiguration
+	channelConfig.ClockRate = 500 * 1000
+	channelConfig.LatencyTimer = 10
+	channelConfig.ConfigOptions = spi.ChipSelectIsActiveLow | spi.ChipSelectIsDBUS3
+
+	err = spi.InitChannel(handle, channelConfig)
 
 	if err == nil {
 
@@ -50,7 +55,7 @@ func main() {
 
 	var sizeTransferred int
 	var dataToTransfer = []byte{0x48, 0x45, 0x4C, 0x4C, 0x4F, 0x20, 0x57, 0x4F, 0x52, 0x4C, 0x44, 0x0A}
-	sizeTransferred, err = spi.Write(handle, dataToTransfer)
+	sizeTransferred, err = spi.Write(handle, dataToTransfer, spi.InputSizeIsInBytes|spi.EnableCSAtStartOfTransfer)
 
 	if err == nil {
 		fmt.Printf("Number of bytes that were transferred %d\n", sizeTransferred)
