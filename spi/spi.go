@@ -11,6 +11,49 @@ type TransferOptions uint32
 // ChannelConfigOptions specifies the various properties of the channel
 type ChannelConfigOptions uint32
 
+// FTErrCode is the error code returned by libftdi
+type FTErrCode int
+
+const (
+	// ErrInvalidHandle for invalid handle
+	ErrInvalidHandle FTErrCode = 1
+	// ErrDeviceNotFound when device is not connected/found
+	ErrDeviceNotFound FTErrCode = 2
+	// ErrDeviceNotOpened when channel is not opened
+	ErrDeviceNotOpened FTErrCode = 3
+	// ErrIOError for an I/O error
+	ErrIOError FTErrCode = 4
+	// ErrInsufficientResources for not having sufficient resources
+	ErrInsufficientResources FTErrCode = 5
+	// ErrInvalidParameter for passing an invalid parameter
+	ErrInvalidParameter FTErrCode = 6
+	// ErrInvalidBaudRate for invalid baud rate
+	ErrInvalidBaudRate FTErrCode = 7
+
+	// ErrDeviceNotOpenedForErase for when device is not opened for erased
+	ErrDeviceNotOpenedForErase FTErrCode = 8
+	// ErrDeviceNotOpenedForWrite for when device is not opened for write
+	ErrDeviceNotOpenedForWrite FTErrCode = 9
+	// ErrFailedToWriteDevice for when failed to write to device
+	ErrFailedToWriteDevice FTErrCode = 10
+	// ErrEEPROMReadFailed for when failed to do eeprom read
+	ErrEEPROMReadFailed FTErrCode = 11
+	// ErrEEPROMWriteFailed for when failed to do eeprom write
+	ErrEEPROMWriteFailed FTErrCode = 12
+	// ErrEEPROMEraseFailed for when eeprom erase failed
+	ErrEEPROMEraseFailed FTErrCode = 13
+	// ErrEEPROMNotPresent for when eeprom is not present
+	ErrEEPROMNotPresent FTErrCode = 14
+	// ErrEEPROMNotProgrammed for when eeprom is not programmed
+	ErrEEPROMNotProgrammed FTErrCode = 15
+	// ErrInvalidArgs for invalid arguements
+	ErrInvalidArgs FTErrCode = 16
+	// ErrNotSupported for when operation is not supported
+	ErrNotSupported FTErrCode = 17
+	// ErrOtherError for when the error is unknown
+	ErrOtherError FTErrCode = 18
+)
+
 const (
 	// InputSizeIsInBytes let your specify the size provided is in bytes
 	InputSizeIsInBytes TransferOptions = 0x00000000
@@ -47,6 +90,15 @@ const (
 	ChipSelectIsActiveLow ChannelConfigOptions = 0x00000020
 )
 
+// FTError is an error class containing the reason for the error
+type FTError struct {
+	Code FTErrCode
+}
+
+func (e FTError) Error() string {
+	return fmt.Sprintf("Error Code: %v", e.Code)
+}
+
 // ChannelConfiguration specifies how channel is to be intialized
 type ChannelConfiguration struct {
 	ClockRate     uint32
@@ -70,7 +122,7 @@ func GetNumChannels() (int, error) {
 	var numOfChannels C.uint32
 	status := C.SPI_GetNumChannels(&numOfChannels)
 	if status != 0 {
-		return -1, fmt.Errorf("an error occurred %g", status)
+		return -1, FTError{Code: FTErrCode(status)}
 	}
 
 	return int(numOfChannels), nil
@@ -81,7 +133,7 @@ func OpenChannel(channelIndex int) (handle *ChannelHandle, err error) {
 	var handlePtr C.FT_HANDLE
 	status := C.SPI_OpenChannel(C.uint32(channelIndex), &handlePtr)
 	if status != 0 {
-		return nil, fmt.Errorf("an error occurred %g", status)
+		return nil, FTError{Code: FTErrCode(status)}
 	}
 	return &ChannelHandle{handlePtr: &handlePtr}, nil
 }
@@ -90,7 +142,7 @@ func OpenChannel(channelIndex int) (handle *ChannelHandle, err error) {
 func CloseChannel(handle *ChannelHandle) (err error) {
 	status := C.SPI_CloseChannel(*handle.handlePtr)
 	if status != 0 {
-		return fmt.Errorf("an error occurred %g", status)
+		return FTError{Code: FTErrCode(status)}
 	}
 	return nil
 }
@@ -100,7 +152,7 @@ func GetChannelInfo(channelIndex int) (channelInfo *ChannelInfo, err error) {
 	var ptr C.FT_DEVICE_LIST_INFO_NODE
 	status := C.SPI_GetChannelInfo(C.uint32(channelIndex), &ptr)
 	if status != 0 {
-		return nil, fmt.Errorf("an error occurred %g", status)
+		return nil, FTError{Code: FTErrCode(status)}
 	}
 	deviceInfo := &ChannelInfo{ptr: &ptr}
 	deviceInfo.SerialNumber = C.GoString(&ptr.SerialNumber[0])
@@ -118,7 +170,7 @@ func InitChannel(deviceHandle *ChannelHandle, chanConfig ChannelConfiguration) (
 
 	status := C.SPI_InitChannel(*deviceHandle.handlePtr, &channelConfig)
 	if status != 0 {
-		return fmt.Errorf("an error occurred %g", status)
+		return FTError{Code: FTErrCode(status)}
 	}
 	return nil
 }
@@ -129,7 +181,7 @@ func Write(deviceHandle *ChannelHandle, data []uint8, transferOptions TransferOp
 	var options C.uint32 = C.uint32(transferOptions)
 	status := C.SPI_Write(*deviceHandle.handlePtr, (*C.uint8)(&data[0]), C.uint32(len(data)), &sizeTransferred, options)
 	if status != 0 {
-		return -1, fmt.Errorf("an error occurred %g", status)
+		return -1, FTError{Code: FTErrCode(status)}
 	}
 	return int(sizeTransferred), nil
 }
